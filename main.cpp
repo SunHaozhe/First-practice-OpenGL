@@ -34,12 +34,10 @@ GLuint texture; // Identifiant opengl de la texture
 static float * sphereTexcoordArray;
 static float * spherePositionArray;
 static unsigned int * sphereIndexArray;
-static float * sphereNormalArray;
 static float currentTime;
 static float acceleration = 1;
 static double mouse_init_x;
 static double mouse_init_y;
-//static float angle = 0;
 
 
 // Camera parameters
@@ -63,139 +61,20 @@ void polar2Cartesian (float phi, float theta, float r, float & x, float & y, flo
 void printUsage () {
     std::cerr << std::endl // send a line break to the standard error output
     << appTitle << std::endl
-    << "Author : Tamy Boubekeur" << std::endl << std::endl
+    << "Author : Tamy Boubekeur, Haozhe Sun" << std::endl << std::endl
     << "Usage : ./main [<file.off>]" << std::endl
     << "Cammandes clavier :" << std::endl
     << "------------------" << std::endl
     << " ?: Print help" << std::endl
     << " w: Toggle wireframe mode" << std::endl
     << " <drag>+<left button>: rotate model" << std::endl
-    << " <drag>+<right button>: move model" << std::endl
-    << " <drag>+<middle button>: zoom" << std::endl
-    << " q, <esc>: Quit" << std::endl << std::endl;
-}
-
-float * normalAt(float theta, float phi){
-    float * pointNormal = new float[3];
-    
-    float x0 = sin (theta) * cos (phi);
-    float y0 = sin (theta) * sin (phi);
-    float z0 = cos (theta);
-    float x1 = sin (theta) * cos (phi + inc2);
-    float y1 = sin (theta) * sin (phi + inc2);
-    float z1 = cos (theta);
-    float x2 = sin (theta - inc1) * cos (phi);
-    float y2 = sin (theta - inc1) * sin (phi);
-    float z2 = cos (theta - inc1);
-    float x3 = sin (theta) * cos (phi - inc2);
-    float y3 = sin (theta) * sin (phi - inc2);
-    float z3 = cos (theta);
-    float x4 = sin (theta + inc1) * cos (phi);
-    float y4 = sin (theta + inc1) * sin (phi);
-    float z4 = cos (theta + inc1);
-    
-    //014 face normal v10 v04
-    float * v10 = new float[3];
-    v10[0] = x0 - x1;
-    v10[1] = y0 - y1;
-    v10[2] = z0 - z1;
-    float * v04 = new float[3];
-    v04[0] = x4 - x0;
-    v04[1] = y4 - y0;
-    v04[2] = z4 - z0;
-    float * n014 = new float[3];
-    n014[0] = v10[1] * v04[2] - v04[1] * v10[2];
-    n014[1] = v10[2] * v04[0] - v04[2] * v10[0];
-    n014[2] = v10[0] * v04[1] - v10[1] * v04[0];
-    delete[] v10;
-    
-    //012 face normal V01 v02
-    float * v01 = new float[3];
-    v01[0] = x1 - x0;
-    v01[1] = y1 - y0;
-    v01[2] = z1 - z0;
-    float * v02 = new float[3];
-    v02[0] = x2 - x0;
-    v02[1] = y2 - y0;
-    v02[2] = z2 - z0;
-    float * n012 = new float[3];
-    n012[0] = v01[1] * v02[2] - v02[1] * v01[2];
-    n012[1] = v01[2] * v02[0] - v02[2] * v01[0];
-    n012[2] = v01[0] * v02[1] - v01[1] * v02[0];
-    delete [] v01;
-    
-    //023 face normal v02 v03
-    float * v03 = new float[3];
-    v03[0] = x3 - x0;
-    v03[1] = y3 - y0;
-    v03[2] = z3 - z0;
-    float * n023 = new float[3];
-    n023[0] = v02[1] * v03[2] - v03[1] * v02[2];
-    n023[1] = v02[2] * v03[0] - v03[2] * v02[0];
-    n023[2] = v02[0] * v03[1] - v02[1] * v03[0];
-    delete [] v02;
-    
-    //034 face normal V03 v04
-    float * n034 = new float[3];
-    n034[0] = v03[1] * v04[2] - v04[1] * v03[2];
-    n034[1] = v03[2] * v04[0] - v04[2] * v03[0];
-    n034[2] = v03[0] * v04[1] - v03[1] * v04[0];
-    delete [] v03;
-    delete[] v04;
-    
-    pointNormal[0]     = n014[0] + n012[0] + n023[0] + n034[0];
-    pointNormal[1] = n014[1] + n012[1] + n023[1] + n034[1];
-    pointNormal[2] = n014[2] + n012[2] + n023[2] + n034[2];
-    
-    delete [] n014;
-    delete [] n012;
-    delete [] n023;
-    delete [] n034;
-    
-    return pointNormal;
-}
-
-float * calculateNormal(){
-    sphereNormalArray = new float[18 * nb * nb];
-    // order : 321234
-    for(int i = 0; i < nb; i++){
-        float theta = inc1 * i;
-        for(int j = 0; j < nb; j++){
-            float phi = inc2 * j;
-            
-            float *  normal1 = normalAt(theta + inc1, phi);
-            sphereNormalArray[18 * (nb * i + j)]      = normal1[0];
-            sphereNormalArray[18 * (nb * i + j) + 1]  = normal1[1];
-            sphereNormalArray[18 * (nb * i + j) + 2]  = normal1[2];
-            delete [] normal1;
-            float * normal2 = normalAt(theta, phi + inc2);
-            sphereNormalArray[18 * (nb * i + j) + 3]  = normal2[0];
-            sphereNormalArray[18 * (nb * i + j) + 4]  = normal2[1];
-            sphereNormalArray[18 * (nb * i + j) + 5]  = normal2[2];
-            delete [] normal2;
-            float * normal3 = normalAt(theta, phi);
-            sphereNormalArray[18 * (nb * i + j) + 6]  = normal3[0];
-            sphereNormalArray[18 * (nb * i + j) + 7]  = normal3[1];
-            sphereNormalArray[18 * (nb * i + j) + 8]  = normal3[2];
-            delete [] normal3;
-            float * normal4 = normalAt(theta, phi + inc2);
-            sphereNormalArray[18 * (nb * i + j) + 9]  = normal4[0];
-            sphereNormalArray[18 * (nb * i + j) + 10] = normal4[1];
-            sphereNormalArray[18 * (nb * i + j) + 11] = normal4[2];
-            delete [] normal4;
-            float * normal5 = normalAt(theta + inc1, phi);
-            sphereNormalArray[18 * (nb * i + j) + 12] = normal5[0];
-            sphereNormalArray[18 * (nb * i + j) + 13] = normal5[1];
-            sphereNormalArray[18 * (nb * i + j) + 14] = normal5[2];
-            delete [] normal5;
-            float * normal6 = normalAt(theta + inc1, phi + inc2);
-            sphereNormalArray[18 * (nb * i + j) + 15] = normal6[0];
-            sphereNormalArray[18 * (nb * i + j) + 16] = normal6[1];
-            sphereNormalArray[18 * (nb * i + j) + 17] = normal6[2];
-            delete [] normal6;
-        }
-    }
-    return sphereNormalArray;
+    << " q, <esc>: Quit" << std::endl
+    << " 1 or x: switch of light 1" << std::endl
+    << " 2 or c: switch of light 2" << std::endl
+    << " UP button: zoom in " << std::endl
+    << " DOWN button: zoom out " << std::endl
+    << " LEFT button: move model to left" << std::endl
+    << " RIGHT button: move model to right " << std::endl << std::endl;
 }
 
 void genCheckerboard (unsigned int width, unsigned int height, unsigned char * image){
@@ -216,21 +95,6 @@ void genCheckerboard (unsigned int width, unsigned int height, unsigned char * i
             }
         }
     }
-    /*
-    for(unsigned int row = 0, row < 10; row++){
-        for(unsigned int column = 0; column < 10; column++){
-            
-            if((row % 2) == (column % 2)){
-                image[3 * (i * width + j)]     = 255;
-                image[3 * (i * width + j) + 1] = 0;
-                image[3 * (i * width + j) + 2] = 0;
-            }else{
-                image[3 * (i * width + j)]     = 0;
-                image[3 * (i * width + j) + 1] = 0;
-                image[3 * (i * width + j) + 2] = 255;
-            }
-        }
-    }*/
 }
 
 void init () {
@@ -248,10 +112,8 @@ void init () {
     nearPlane = 0.01;
     farPlane = 50.0;
     camPhi = M_PI/2.0;
-    //camTheta = M_PI/2.0;
-    camTheta = 0;
-    //camDist2Target = 3.0;
-    camDist2Target = 10.0;
+    camTheta = M_PI/7.0;
+    camDist2Target = 20.0;
     camTargetX = 0.0;
     camTargetY = 0.0;
     camTargetZ = 0.0;
@@ -260,7 +122,6 @@ void init () {
     sphereIndexArray = new unsigned int[18 * nb * nb];
     sphereTexcoordArray = new float[12 * nb * nb];
     
-    // order : 321234
     for(int i = 0; i < nb; i++){
         float theta = inc1 * i;
         for(int j = 0; j < nb; j++){
@@ -334,8 +195,6 @@ void init () {
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), (GLvoid*)spherePositionArray);
     
-    //sphereNormalArray = calculateNormal();
-    
     glEnableClientState (GL_NORMAL_ARRAY);
     glNormalPointer (GL_FLOAT, 3*sizeof (float), (GLvoid*)spherePositionArray);
     glEnable (GL_NORMALIZE); // preserve les vecteurs normaux unitaires, quelle que soit la transformation courante
@@ -399,79 +258,26 @@ void reshape (int w, int h) {
     glViewport (0, 0, (GLint)w, (GLint)h); // Dimension of the drawing region in the window
     setupCamera ();
 }
-/*
- void glSphere(float x, float y, float z, float r){
- 
- int nb = 30;
- float inc1 = M_PI / nb;
- float inc2 = 2 * M_PI / nb;
- 
- glMatrixMode (GL_MODELVIEW);// Indique que l’on va désormais altérer la matrice modèle-vue
- glPushMatrix (); // pousse la matrice courante sur un pile
- glTranslatef (x, y, z); // applique une translation à la matrice [...] // dessin des polygones (glVertex3f, etc), dans le repère définit par la matrice model-vue
- 
- //glBegin (GL_TRIANGLES);
- for(int i = 0; i < nb; i++){
- for(int j = 0; j < nb; j++){
- float theta = inc1 * (i - 1);
- float phi = inc2 * (j - 1);
- float x1 = r * sin (theta) * cos (phi);
- float y1b = r * sin (theta) * sin (phi);
- float z1 = r * cos (theta);
- float x2 = r * sin (theta) * cos (phi + inc2);
- float y2 = r * sin (theta) * sin (phi + inc2);
- float z2 = r * cos (theta);
- float x3 = r * sin (theta + inc1) * cos (phi);
- float y3 = r * sin (theta + inc1) * sin (phi);
- float z3 = r * cos (theta + inc1);
- float x4 = r * sin (theta + inc1) * cos (phi + inc2);
- float y4 = r * sin (theta + inc1) * sin (phi + inc2);
- float z4 = r * cos (theta + inc1);
- 
- glColor3f (x3, y3, z3);
- glVertex3f (x3, y3, z3);
- glColor3f (x2, y2, z2);
- glVertex3f (x2, y2, z2);
- glColor3f (x1, y1b, z1);
- glVertex3f (x1, y1b, z1);
- 
- glColor3f (x2, y2, z2);
- glVertex3f (x2, y2, z2);
- glColor3f (x3, y3, z3);
- glVertex3f (x3, y3, z3);
- glColor3f (x4, y4, z4);
- glVertex3f (x4, y4, z4);
- 
- }
- }
- //glEnd ();
- glDrawElements(GL_TRIANGLES, 3*sizeof(float), GL_UNSIGNED_INT, sphereIndexArray);
- 
- glPopMatrix (); // replace la matrice modèle vue courante original
- }
- */
 
 void glSphere(float x, float y, float z, float r){
     glMatrixMode (GL_MODELVIEW);// Indique que l’on va désormais altérer la matrice modèle-vue
     glPushMatrix (); // pousse la matrice courante sur un pile
     glTranslatef (x, y, z); // applique une translation à la matrice [...] // dessin des polygones (glVertex3f, etc), dans le repère définit par la matrice model-vue
     glScalef (r, r, r);
-    //glRotatef(currentTime / 30, 0, 1, 0);
+    glRotatef(currentTime * acceleration / 25, 0, 1, 0);
     glDrawElements(GL_TRIANGLES, 6 * nb * nb, GL_UNSIGNED_INT, sphereIndexArray);
     glPopMatrix (); // replace la matrice modèle vue courante original
 }
 
 void glSphereWithMat (float x, float y, float z, float r, float difR, float difG, float difB,
                       float specR, float specG, float specB,
-                      float shininess, bool hasTexture){
+                      float shininess){
     GLfloat material_color[4] = {difR, difG, difB, 1.0f};
     GLfloat material_specular[4] = {specR, specG, specB,1.0};
     glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, material_specular);
     glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, material_color);
     glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, shininess);
-    if(hasTexture == true){
-        glBindTexture (GL_TEXTURE_2D, texture);
-    }
+    glBindTexture (GL_TEXTURE_2D, texture);
     glSphere(x, y, z, r);
 }
 
@@ -480,36 +286,33 @@ void display () {
     setupCamera ();
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Erase the color and z buffers.
     
-    //glMatrixMode (GL_MODELVIEW);// Indique que l’on va désormais altérer la matrice modèle-vue
-    //glPushMatrix (); // pousse la matrice courante sur un pile
-    //glRotatef((currentTime / 30) * acceleration, 1, 0, 1);
-    
     // Put your drawing code (glBegin, glVertex, glCallList, glDrawArray, etc) here
-    glSphereWithMat(0, 0, 0, 1,
+    glMatrixMode (GL_MODELVIEW);
+    glPushMatrix ();
+    glRotatef(currentTime * acceleration / 30, 0, 1, 0);
+    glSphereWithMat(0, 0, 0, 1.2,
              1.0, 0.3,0.6,
              0.8,1.0,0.5,
-             80, true);
-    glSphereWithMat(-2, 0, 0, 1,
+             80);
+    glPopMatrix ();
+    
+    glMatrixMode (GL_MODELVIEW);
+    glPushMatrix ();
+    glRotatef(currentTime * acceleration / 20, 0, 1, 0);
+    glSphereWithMat(-7, 0, 0, 0.6,
              0.9, 1,0.6,
              0.1,0.4,0.7,
-             80, true);
-    glSphereWithMat(2, 0, 0, 1,
-                    0.4, 0.3,0.6,
-                    0.8,1.0,0.5,
-                    128, true);
-    //glSphere(-2, 0, 0, 1);
-    //glSphere(2, 0, 0, 1);
-    //glSphere(-1, sqrt(3), 0, 1);
-    //glSphere(1, sqrt(3), 0, 1);
-    //glSphere(0, 2 * sqrt(3), 0, 1);
+             80);
+    glPopMatrix ();
     
-    //glSphere(-1, 2 / sqrt(3), sqrt(3), 1);
-    //glSphere(1, 2 / sqrt(3), sqrt(3), 1);
-    //glSphere(0, (2 / sqrt(3)) + sqrt(3), sqrt(3), 1);
-    
-    //glSphere(0, 4 / sqrt(3), sqrt(3), 1);
-    
-    //glPopMatrix ();
+    glMatrixMode (GL_MODELVIEW);
+    glPushMatrix ();
+    glRotatef(currentTime * acceleration / 8, 0, 1, 0);
+    glSphereWithMat(4, 0, 0, 0.3,
+                    0.9, 1,0.6,
+                    0.1,0.4,0.7,
+                    80);
+    glPopMatrix ();
     
     glFlush (); // Ensures any previous OpenGL call has been executed
     glutSwapBuffers ();  // swap the render buffer and the displayed (screen) one
@@ -518,11 +321,13 @@ void display () {
 
 void keyboard (unsigned char keyPressed, int x, int y) {
     switch (keyPressed) {
-        case '0':
+        case '1':
+        case 'x':
             if(glIsEnabled(GL_LIGHT0)) glDisable(GL_LIGHT0);
             else glEnable(GL_LIGHT0);
             break;
-        case '9':
+        case '2':
+        case 'c':
             if(glIsEnabled(GL_LIGHT1)) glDisable(GL_LIGHT1);
             else glEnable(GL_LIGHT1);
             break;
@@ -558,14 +363,10 @@ void mouse (int button, int state, int x, int y) {
 
 void motion (int x, int y) {
      if (((double)x) != mouse_init_x) {
-         camPhi += ((double)x - mouse_init_x) / 400;
-     //angle += (abs(x - (int)mouse_init_x));
-     //glutPostRedisplay();
+         camPhi += ((double)x - mouse_init_x) / 8000;
      }
      if (((double)y) != mouse_init_y) {
-         camTheta += ((double)y - mouse_init_y) / 400;
-     //angle += (abs(y - (int)mouse_init_y));
-     //glutPostRedisplay();
+         camTheta += ((double)y - mouse_init_y) / 8000;
      }
 }
 
@@ -574,21 +375,15 @@ void specialKey(GLint key, GLint x, GLint y){
             break;
    	    case GLUT_KEY_UP:
             camDist2Target -= 0.5;
-            //camTheta += 0.1;
-            //camTargetY += 0.2;
             break;
         case GLUT_KEY_DOWN:
             camDist2Target += 0.5;
-            //camTheta -= 0.1;
-            //camTargetY -= 0.2;
             break;
         case GLUT_KEY_LEFT:
-            //camPhi -= 0.1;
-            //camTargetX += 0.2;
+            camTargetX += 0.25;
             break;
         case GLUT_KEY_RIGHT:
-            //camTargetX -= 0.2;
-            //camPhi += 0.1;
+            camTargetX -= 0.25;
             break;
         default:
             break;
