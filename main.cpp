@@ -91,11 +91,11 @@ float * normalAt(float theta, float phi){
     //014 face normal v10 v04
     float * v10 = new float[3];
     v10[0] = x0 - x1;
-    v10[1] = y0 = y1;
+    v10[1] = y0 - y1;
     v10[2] = z0 - z1;
     float * v04 = new float[3];
     v04[0] = x4 - x0;
-    v04[1] = y4 = y0;
+    v04[1] = y4 - y0;
     v04[2] = z4 - z0;
     float * n014 = new float[3];
     n014[0] = v10[1] * v04[2] - v04[1] * v10[2];
@@ -106,11 +106,11 @@ float * normalAt(float theta, float phi){
     //012 face normal V01 v02
     float * v01 = new float[3];
     v01[0] = x1 - x0;
-    v01[1] = y1 = y0;
+    v01[1] = y1 - y0;
     v01[2] = z1 - z0;
     float * v02 = new float[3];
     v02[0] = x2 - x0;
-    v02[1] = y2 = y0;
+    v02[1] = y2 - y0;
     v02[2] = z2 - z0;
     float * n012 = new float[3];
     n012[0] = v01[1] * v02[2] - v02[1] * v01[2];
@@ -121,7 +121,7 @@ float * normalAt(float theta, float phi){
     //023 face normal v02 v03
     float * v03 = new float[3];
     v03[0] = x3 - x0;
-    v03[1] = y3 = y0;
+    v03[1] = y3 - y0;
     v03[2] = z3 - z0;
     float * n023 = new float[3];
     n023[0] = v02[1] * v03[2] - v03[1] * v02[2];
@@ -153,9 +153,9 @@ float * calculateNormal(){
     sphereNormalArray = new float[18 * (nb + 1) * (nb + 1)];
     // order : 321234
     for(int i = 0; i <= nb; i++){
+        float theta = inc1 * i;
         for(int j = 0; j <= nb; j++){
-            float theta = inc1 * (i - 1);
-            float phi = inc2 * (j - 1);
+            float phi = inc2 * j;
             
             float *  normal1 = normalAt(theta + inc1, phi);
             sphereNormalArray[18 * ((nb + 1) * i + j)]      = normal1[0];
@@ -172,7 +172,7 @@ float * calculateNormal(){
             sphereNormalArray[18 * ((nb + 1) * i + j) + 7]  = normal3[1];
             sphereNormalArray[18 * ((nb + 1) * i + j) + 8]  = normal3[2];
             delete [] normal3;
-            float * normal4 = normalAt(theta, phi += inc2);
+            float * normal4 = normalAt(theta, phi + inc2);
             sphereNormalArray[18 * ((nb + 1) * i + j) + 9]  = normal4[0];
             sphereNormalArray[18 * ((nb + 1) * i + j) + 10] = normal4[1];
             sphereNormalArray[18 * ((nb + 1) * i + j) + 11] = normal4[2];
@@ -209,8 +209,8 @@ void init () {
     camPhi = M_PI/2.0;
     //camTheta = M_PI/2.0;
     camTheta = 0;
-    //camDist2Target = 5.0;
-    camDist2Target = 10.0;
+    camDist2Target = 5.0;
+    //camDist2Target = 10.0;
     camTargetX = 0.0;
     camTargetY = 0.0;
     camTargetZ = 0.0;
@@ -223,9 +223,9 @@ void init () {
     }
     // order : 321234
     for(int i = 0; i <= nb; i++){
+        float theta = inc1 * i;
         for(int j = 0; j <= nb; j++){
-            float theta = inc1 * (i - 1);
-            float phi = inc2 * (j - 1);
+            float phi = inc2 * j;
             
             float x1 = sin (theta) * cos (phi);
             float y1 = sin (theta) * sin (phi);
@@ -357,7 +357,7 @@ void glSphere(float x, float y, float z, float r){
     glPushMatrix (); // pousse la matrice courante sur un pile
     glTranslatef (x, y, z); // applique une translation à la matrice [...] // dessin des polygones (glVertex3f, etc), dans le repère définit par la matrice model-vue
     glScalef (r, r, r);
-    //glRotatef(currentTime / 30, 5, 1, 1);
+    glRotatef(currentTime / 30, 0, 1, 0);
     glDrawElements(GL_TRIANGLES, 6 * (nb + 1) * (nb + 1), GL_UNSIGNED_INT, sphereIndexArray);
     glPopMatrix (); // replace la matrice modèle vue courante original
     
@@ -368,10 +368,9 @@ void display () {
     setupCamera ();
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Erase the color and z buffers.
     
-    glMatrixMode (GL_MODELVIEW);// Indique que l’on va désormais altérer la matrice modèle-vue
-    glPushMatrix (); // pousse la matrice courante sur un pile
-    
-    glRotatef((currentTime / 30) * acceleration, 1, 0, 1);
+    //glMatrixMode (GL_MODELVIEW);// Indique que l’on va désormais altérer la matrice modèle-vue
+    //glPushMatrix (); // pousse la matrice courante sur un pile
+    //glRotatef((currentTime / 30) * acceleration, 1, 0, 1);
     
     // Put your drawing code (glBegin, glVertex, glCallList, glDrawArray, etc) here
     glSphere(0, 0, 0, 1);
@@ -385,7 +384,7 @@ void display () {
     //glSphere(0, (2 / sqrt(3)) + sqrt(3), 1 + sqrt(3), 1);
     //glSphere(0, 4 / sqrt(3), 1 + 2 * sqrt(3), 1);
     
-    glPopMatrix ();
+    //glPopMatrix ();
     
     glFlush (); // Ensures any previous OpenGL call has been executed
     glutSwapBuffers ();  // swap the render buffer and the displayed (screen) one
