@@ -31,8 +31,8 @@ static unsigned int * sphereIndexArray;
 static float * sphereNormalArray;
 static float currentTime;
 static float acceleration = 1;
-//static double mouse_init_x;
-//static double mouse_init_y;
+static double mouse_init_x;
+static double mouse_init_y;
 //static float angle = 0;
 
 
@@ -150,11 +150,11 @@ float * normalAt(float theta, float phi){
 }
 
 float * calculateNormal(){
-    sphereNormalArray = new float[18 * (nb + 1) * (nb + 1)];
+    sphereNormalArray = new float[18 * nb * nb];
     // order : 321234
-    for(int i = 0; i <= nb; i++){
+    for(int i = 0; i < nb; i++){
         float theta = inc1 * i;
-        for(int j = 0; j <= nb; j++){
+        for(int j = 0; j < nb; j++){
             float phi = inc2 * j;
             
             float *  normal1 = normalAt(theta + inc1, phi);
@@ -205,26 +205,26 @@ void init () {
     // Camera initialization
     fovAngle = 45.f;
     nearPlane = 0.01;
-    farPlane = 10.0;
+    farPlane = 50.0;
     camPhi = M_PI/2.0;
     //camTheta = M_PI/2.0;
     camTheta = 0;
-    camDist2Target = 5.0;
-    //camDist2Target = 10.0;
+    //camDist2Target = 3.0;
+    camDist2Target = 10.0;
     camTargetX = 0.0;
     camTargetY = 0.0;
     camTargetZ = 0.0;
     
-    spherePositionArray = new float[18 * (nb + 1) * (nb + 1)];
-    sphereIndexArray = new unsigned int[18 * (nb + 1) * (nb + 1)];
+    spherePositionArray = new float[18 * nb * nb];
+    sphereIndexArray = new unsigned int[18 * nb * nb];
     
-    for(int i = 0; i < 18 * (nb + 1) * (nb + 1); i++){
+    for(int i = 0; i < 18 * nb * nb; i++){
         sphereIndexArray[i] = i;
     }
     // order : 321234
-    for(int i = 0; i <= nb; i++){
+    for(int i = 0; i < nb; i++){
         float theta = inc1 * i;
-        for(int j = 0; j <= nb; j++){
+        for(int j = 0; j < nb; j++){
             float phi = inc2 * j;
             
             float x1 = sin (theta) * cos (phi);
@@ -241,33 +241,33 @@ void init () {
             float z4 = cos (theta + inc1);
             
             
-            spherePositionArray[18 * ((nb + 1) * i + j)]      = x3;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 1]  = y3;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 2]  = z3;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 3]  = x2;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 4]  = y2;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 5]  = z2;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 6]  = x1;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 7]  = y1;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 8]  = z1;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 9]  = x2;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 10] = y2;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 11] = z2;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 12] = x3;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 13] = y3;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 14] = z3;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 15] = x4;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 16] = y4;
-            spherePositionArray[18 * ((nb + 1) * i + j) + 17] = z4;
+            spherePositionArray[18 * (nb * i + j)]      = x3;
+            spherePositionArray[18 * (nb * i + j) + 1]  = y3;
+            spherePositionArray[18 * (nb * i + j) + 2]  = z3;
+            spherePositionArray[18 * (nb * i + j) + 3]  = x2;
+            spherePositionArray[18 * (nb * i + j) + 4]  = y2;
+            spherePositionArray[18 * (nb * i + j) + 5]  = z2;
+            spherePositionArray[18 * (nb * i + j) + 6]  = x1;
+            spherePositionArray[18 * (nb * i + j) + 7]  = y1;
+            spherePositionArray[18 * (nb * i + j) + 8]  = z1;
+            spherePositionArray[18 * (nb * i + j) + 9]  = x2;
+            spherePositionArray[18 * (nb * i + j) + 10] = y2;
+            spherePositionArray[18 * (nb * i + j) + 11] = z2;
+            spherePositionArray[18 * (nb * i + j) + 12] = x3;
+            spherePositionArray[18 * (nb * i + j) + 13] = y3;
+            spherePositionArray[18 * (nb * i + j) + 14] = z3;
+            spherePositionArray[18 * (nb * i + j) + 15] = x4;
+            spherePositionArray[18 * (nb * i + j) + 16] = y4;
+            spherePositionArray[18 * (nb * i + j) + 17] = z4;
         }
     }
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), (GLvoid*)spherePositionArray);
     
-    sphereNormalArray = calculateNormal();
+    //sphereNormalArray = calculateNormal();
     
     glEnableClientState (GL_NORMAL_ARRAY);
-    glNormalPointer (GL_FLOAT, 3*sizeof (float), (GLvoid*)sphereNormalArray);
+    glNormalPointer (GL_FLOAT, 3*sizeof (float), (GLvoid*)spherePositionArray);
     glEnable (GL_NORMALIZE); // preserve les vecteurs normaux unitaires, quelle que soit la transformation courante
     
     glEnable (GL_LIGHTING);
@@ -277,6 +277,13 @@ void init () {
     glLightfv (GL_LIGHT0, GL_DIFFUSE, color); // On lui donne légèrement orangée
     glLightfv (GL_LIGHT0, GL_SPECULAR, color); // Une hérésie, mais OpenGL est conçu comme cela
     glEnable (GL_LIGHT0); // On active la source 0
+    
+    GLfloat light_position2[4] = {-10.0f, 0.0f, -1.0f, 1.0f};
+    GLfloat color2[4] = {0.0f, 0.1f, 0.3f, 1.0f};
+    glLightfv (GL_LIGHT1, GL_POSITION, light_position2); // On place la source N° 0 en (10,10,10)
+    glLightfv (GL_LIGHT1, GL_DIFFUSE, color2); // On lui donne légèrement orangée
+    glLightfv (GL_LIGHT1, GL_SPECULAR, color2); // Une hérésie, mais OpenGL est conçu comme cela
+    glEnable (GL_LIGHT1); // On active la source 0
 }
 
 void setupCamera () {
@@ -357,10 +364,20 @@ void glSphere(float x, float y, float z, float r){
     glPushMatrix (); // pousse la matrice courante sur un pile
     glTranslatef (x, y, z); // applique une translation à la matrice [...] // dessin des polygones (glVertex3f, etc), dans le repère définit par la matrice model-vue
     glScalef (r, r, r);
-    glRotatef(currentTime / 30, 0, 1, 0);
-    glDrawElements(GL_TRIANGLES, 6 * (nb + 1) * (nb + 1), GL_UNSIGNED_INT, sphereIndexArray);
+    //glRotatef(currentTime / 30, 0, 1, 0);
+    glDrawElements(GL_TRIANGLES, 6 * nb * nb, GL_UNSIGNED_INT, sphereIndexArray);
     glPopMatrix (); // replace la matrice modèle vue courante original
-    
+}
+
+void glSphereWithMat (float x, float y, float z, float r, float difR, float difG, float difB,
+                      float specR, float specG, float specB,
+                      float shininess){
+    GLfloat material_color[4] = {difR, difG, difB, 1.0f};
+    GLfloat material_specular[4] = {specR, specG, specB,1.0};
+    glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, material_specular);
+    glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, material_color);
+    glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, shininess);
+    glSphere(x, y, z, r);
 }
 
 
@@ -373,16 +390,29 @@ void display () {
     //glRotatef((currentTime / 30) * acceleration, 1, 0, 1);
     
     // Put your drawing code (glBegin, glVertex, glCallList, glDrawArray, etc) here
-    glSphere(0, 0, 0, 1);
-    glSphere(-2, 0, 0, 1);
-    glSphere(2, 0, 0, 1);
-    glSphere(-1, sqrt(3), 0, 1);
-    glSphere(1, sqrt(3), 0, 1);
-    glSphere(0, 2 * sqrt(3), 0, 1);
-    //glSphere(-1, 2 / sqrt(3), 1 + sqrt(3), 1);
-    //glSphere(1, 2 / sqrt(3), 1 + sqrt(3), 1);
-    //glSphere(0, (2 / sqrt(3)) + sqrt(3), 1 + sqrt(3), 1);
-    //glSphere(0, 4 / sqrt(3), 1 + 2 * sqrt(3), 1);
+    glSphereWithMat(0, 0, 0, 1,
+             1.0, 0.3,0.6,
+             0.8,1.0,0.5,
+             80);
+    glSphereWithMat(-2, 0, 0, 1,
+             0.9, 1,0.6,
+             0.1,0.4,0.7,
+             80);
+    glSphereWithMat(2, 0, 0, 1,
+                    0.4, 0.3,0.6,
+                    0.8,1.0,0.5,
+                    128);
+    //glSphere(-2, 0, 0, 1);
+    //glSphere(2, 0, 0, 1);
+    //glSphere(-1, sqrt(3), 0, 1);
+    //glSphere(1, sqrt(3), 0, 1);
+    //glSphere(0, 2 * sqrt(3), 0, 1);
+    
+    //glSphere(-1, 2 / sqrt(3), sqrt(3), 1);
+    //glSphere(1, 2 / sqrt(3), sqrt(3), 1);
+    //glSphere(0, (2 / sqrt(3)) + sqrt(3), sqrt(3), 1);
+    
+    //glSphere(0, 4 / sqrt(3), sqrt(3), 1);
     
     //glPopMatrix ();
     
@@ -393,6 +423,14 @@ void display () {
 
 void keyboard (unsigned char keyPressed, int x, int y) {
     switch (keyPressed) {
+        case '0':
+            if(glIsEnabled(GL_LIGHT0)) glDisable(GL_LIGHT0);
+            else glEnable(GL_LIGHT0);
+            break;
+        case '9':
+            if(glIsEnabled(GL_LIGHT1)) glDisable(GL_LIGHT1);
+            else glEnable(GL_LIGHT1);
+            break;
         case '+':
             acceleration = acceleration * 1.2;
             break;
@@ -417,25 +455,49 @@ void keyboard (unsigned char keyPressed, int x, int y) {
 
 
 void mouse (int button, int state, int x, int y) {
-    /*
-     if (state == GLUT_DOWN)  {
+     if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)  {
      mouse_init_x = (double)x;
      mouse_init_y = (double)y;
      }
-     */
 }
 
 void motion (int x, int y) {
-    /*
      if (((double)x) != mouse_init_x) {
-     angle += (abs(x - (int)mouse_init_x));
-     glutPostRedisplay();
+         camPhi += ((double)x - mouse_init_x) / 400;
+     //angle += (abs(x - (int)mouse_init_x));
+     //glutPostRedisplay();
      }
      if (((double)y) != mouse_init_y) {
-     angle += (abs(y - (int)mouse_init_y));
-     glutPostRedisplay();
+         camTheta += ((double)y - mouse_init_y) / 400;
+     //angle += (abs(y - (int)mouse_init_y));
+     //glutPostRedisplay();
      }
-     */
+}
+
+void specialKey(GLint key, GLint x, GLint y){
+    switch (key) {
+            break;
+   	    case GLUT_KEY_UP:
+            camDist2Target -= 1;
+            //camTheta += 0.1;
+            //camTargetY += 0.2;
+            break;
+        case GLUT_KEY_DOWN:
+            camDist2Target += 1;
+            //camTheta -= 0.1;
+            //camTargetY -= 0.2;
+            break;
+        case GLUT_KEY_LEFT:
+            //camPhi -= 0.1;
+            //camTargetX += 0.2;
+            break;
+        case GLUT_KEY_RIGHT:
+            //camTargetX -= 0.2;
+            //camPhi += 0.1;
+            break;
+        default:
+            break;
+    }
 }
 
 // This function is executed in an infinite loop. It updated the window title
@@ -454,6 +516,7 @@ int main (int argc, char ** argv) {
     glutReshapeFunc (reshape); // Callback function executed whenever glut need to setup the projection matrix
     glutDisplayFunc (display); // Callback function executed when the window app need to be redrawn
     glutKeyboardFunc (keyboard); // Callback function executed when the keyboard is used
+    glutSpecialFunc(specialKey);
     glutMouseFunc (mouse); // Callback function executed when a mouse button is clicked
     glutMotionFunc (motion); // Callback function executed when the mouse move
     glutIdleFunc (idle); // Callback function executed continuously when no other event happens (good for background procesing or animation for instance).
