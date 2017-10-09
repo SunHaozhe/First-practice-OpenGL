@@ -10,7 +10,19 @@
 #include <vector>
 #include <string>
 #include <cmath>
+
+#ifdef __APPLE__
 #include <GLUT/glut.h>
+#else
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#ifdef __linux__
+#include <GL/glut.h>
+#endif
+#endif
+
+
 
 using namespace std;
 
@@ -74,7 +86,9 @@ void printUsage () {
     << " UP button: zoom in " << std::endl
     << " DOWN button: zoom out " << std::endl
     << " LEFT button: move model to left" << std::endl
-    << " RIGHT button: move model to right " << std::endl << std::endl;
+    << " RIGHT button: move model to right " << std::endl
+    << " + button: accelerate the speed of animation " << std::endl
+    << " - button: decelerate the speed of animation " << std::endl<< std::endl;
 }
 
 void genCheckerboard (unsigned int width, unsigned int height, unsigned char * image){
