@@ -26,6 +26,12 @@ static int nb = 60;
 static float inc1 = M_PI / nb;
 static float inc2 = 2 * M_PI / nb;
 
+static unsigned int width;
+static unsigned int height;
+static unsigned char * image;
+GLuint texture; // Identifiant opengl de la texture
+
+static float * sphereTexcoordArray;
 static float * spherePositionArray;
 static unsigned int * sphereIndexArray;
 static float * sphereNormalArray;
@@ -158,38 +164,73 @@ float * calculateNormal(){
             float phi = inc2 * j;
             
             float *  normal1 = normalAt(theta + inc1, phi);
-            sphereNormalArray[18 * ((nb + 1) * i + j)]      = normal1[0];
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 1]  = normal1[1];
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 2]  = normal1[2];
+            sphereNormalArray[18 * (nb * i + j)]      = normal1[0];
+            sphereNormalArray[18 * (nb * i + j) + 1]  = normal1[1];
+            sphereNormalArray[18 * (nb * i + j) + 2]  = normal1[2];
             delete [] normal1;
             float * normal2 = normalAt(theta, phi + inc2);
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 3]  = normal2[0];
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 4]  = normal2[1];
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 5]  = normal2[2];
+            sphereNormalArray[18 * (nb * i + j) + 3]  = normal2[0];
+            sphereNormalArray[18 * (nb * i + j) + 4]  = normal2[1];
+            sphereNormalArray[18 * (nb * i + j) + 5]  = normal2[2];
             delete [] normal2;
             float * normal3 = normalAt(theta, phi);
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 6]  = normal3[0];
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 7]  = normal3[1];
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 8]  = normal3[2];
+            sphereNormalArray[18 * (nb * i + j) + 6]  = normal3[0];
+            sphereNormalArray[18 * (nb * i + j) + 7]  = normal3[1];
+            sphereNormalArray[18 * (nb * i + j) + 8]  = normal3[2];
             delete [] normal3;
             float * normal4 = normalAt(theta, phi + inc2);
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 9]  = normal4[0];
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 10] = normal4[1];
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 11] = normal4[2];
+            sphereNormalArray[18 * (nb * i + j) + 9]  = normal4[0];
+            sphereNormalArray[18 * (nb * i + j) + 10] = normal4[1];
+            sphereNormalArray[18 * (nb * i + j) + 11] = normal4[2];
             delete [] normal4;
             float * normal5 = normalAt(theta + inc1, phi);
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 12] = normal5[0];
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 13] = normal5[1];
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 14] = normal5[2];
+            sphereNormalArray[18 * (nb * i + j) + 12] = normal5[0];
+            sphereNormalArray[18 * (nb * i + j) + 13] = normal5[1];
+            sphereNormalArray[18 * (nb * i + j) + 14] = normal5[2];
             delete [] normal5;
             float * normal6 = normalAt(theta + inc1, phi + inc2);
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 15] = normal6[0];
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 16] = normal6[1];
-            sphereNormalArray[18 * ((nb + 1) * i + j) + 17] = normal6[2];
+            sphereNormalArray[18 * (nb * i + j) + 15] = normal6[0];
+            sphereNormalArray[18 * (nb * i + j) + 16] = normal6[1];
+            sphereNormalArray[18 * (nb * i + j) + 17] = normal6[2];
             delete [] normal6;
         }
     }
     return sphereNormalArray;
+}
+
+void genCheckerboard (unsigned int width, unsigned int height, unsigned char * image){
+    unsigned int unitw = width / 10;
+    unsigned int unith = height / 10;
+    for(unsigned int i = 0; i < height; i++){
+        for(unsigned int j = 0; j < width; j++){
+            unsigned int row = (i - i % unith) / unith;
+            unsigned int column = (j - j % unitw) / unitw;
+            if((row % 2) == (column % 2)){
+                image[3 * (i * width + j)]     = 255;
+                image[3 * (i * width + j) + 1] = 0;
+                image[3 * (i * width + j) + 2] = 0;
+            }else{
+                image[3 * (i * width + j)]     = 0;
+                image[3 * (i * width + j) + 1] = 0;
+                image[3 * (i * width + j) + 2] = 255;
+            }
+        }
+    }
+    /*
+    for(unsigned int row = 0, row < 10; row++){
+        for(unsigned int column = 0; column < 10; column++){
+            
+            if((row % 2) == (column % 2)){
+                image[3 * (i * width + j)]     = 255;
+                image[3 * (i * width + j) + 1] = 0;
+                image[3 * (i * width + j) + 2] = 0;
+            }else{
+                image[3 * (i * width + j)]     = 0;
+                image[3 * (i * width + j) + 1] = 0;
+                image[3 * (i * width + j) + 2] = 255;
+            }
+        }
+    }*/
 }
 
 void init () {
@@ -217,10 +258,8 @@ void init () {
     
     spherePositionArray = new float[18 * nb * nb];
     sphereIndexArray = new unsigned int[18 * nb * nb];
+    sphereTexcoordArray = new float[12 * nb * nb];
     
-    for(int i = 0; i < 18 * nb * nb; i++){
-        sphereIndexArray[i] = i;
-    }
     // order : 321234
     for(int i = 0; i < nb; i++){
         float theta = inc1 * i;
@@ -240,7 +279,6 @@ void init () {
             float y4 = sin (theta + inc1) * sin (phi + inc2);
             float z4 = cos (theta + inc1);
             
-            
             spherePositionArray[18 * (nb * i + j)]      = x3;
             spherePositionArray[18 * (nb * i + j) + 1]  = y3;
             spherePositionArray[18 * (nb * i + j) + 2]  = z3;
@@ -259,6 +297,38 @@ void init () {
             spherePositionArray[18 * (nb * i + j) + 15] = x4;
             spherePositionArray[18 * (nb * i + j) + 16] = y4;
             spherePositionArray[18 * (nb * i + j) + 17] = z4;
+            
+            sphereIndexArray[18 * (nb * i + j)]          = 18 * (nb * i + j);
+            sphereIndexArray[18 * (nb * i + j) + 1]      = 18 * (nb * i + j) + 1;
+            sphereIndexArray[18 * (nb * i + j) + 2]      = 18 * (nb * i + j) + 2;
+            sphereIndexArray[18 * (nb * i + j) + 3]      = 18 * (nb * i + j) + 3;
+            sphereIndexArray[18 * (nb * i + j) + 4]      = 18 * (nb * i + j) + 4;
+            sphereIndexArray[18 * (nb * i + j) + 5]      = 18 * (nb * i + j) + 5;
+            sphereIndexArray[18 * (nb * i + j) + 6]      = 18 * (nb * i + j) + 6;
+            sphereIndexArray[18 * (nb * i + j) + 7]      = 18 * (nb * i + j) + 7;
+            sphereIndexArray[18 * (nb * i + j) + 8]      = 18 * (nb * i + j) + 8;
+            sphereIndexArray[18 * (nb * i + j) + 9]      = 18 * (nb * i + j) + 9;
+            sphereIndexArray[18 * (nb * i + j) + 10]     = 18 * (nb * i + j) + 10;
+            sphereIndexArray[18 * (nb * i + j) + 11]     = 18 * (nb * i + j) + 11;
+            sphereIndexArray[18 * (nb * i + j) + 12]     = 18 * (nb * i + j) + 12;
+            sphereIndexArray[18 * (nb * i + j) + 13]     = 18 * (nb * i + j) + 13;
+            sphereIndexArray[18 * (nb * i + j) + 14]     = 18 * (nb * i + j) + 14;
+            sphereIndexArray[18 * (nb * i + j) + 15]     = 18 * (nb * i + j) + 15;
+            sphereIndexArray[18 * (nb * i + j) + 16]     = 18 * (nb * i + j) + 16;
+            sphereIndexArray[18 * (nb * i + j) + 17]     = 18 * (nb * i + j) + 17;
+            
+            sphereTexcoordArray[12 * (nb * i + j)]      = j * 1.0 / nb;
+            sphereTexcoordArray[12 * (nb * i + j) + 1]  = 1 - (i + 1) * 1.0 / nb;
+            sphereTexcoordArray[12 * (nb * i + j) + 2]  = (j + 1) * 1.0 / nb;
+            sphereTexcoordArray[12 * (nb * i + j) + 3]  = 1 - i* 1.0 / nb;
+            sphereTexcoordArray[12 * (nb * i + j) + 4]  = j * 1.0 / nb;
+            sphereTexcoordArray[12 * (nb * i + j) + 5]  = 1 - i * 1.0 / nb;
+            sphereTexcoordArray[12 * (nb * i + j) + 6]  = (j + 1) * 1.0 / nb;
+            sphereTexcoordArray[12 * (nb * i + j) + 7]  = 1 - i * 1.0 / nb;
+            sphereTexcoordArray[12 * (nb * i + j) + 8]  = j * 1.0 / nb;
+            sphereTexcoordArray[12 * (nb * i + j) + 9]  = 1 - (i + 1) * 1.0 / nb;
+            sphereTexcoordArray[12 * (nb * i + j) + 10] = (j + 1) * 1.0 / nb;
+            sphereTexcoordArray[12 * (nb * i + j) + 11] = 1 - (i + 1) * 1.0 / nb;
         }
     }
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -270,6 +340,7 @@ void init () {
     glNormalPointer (GL_FLOAT, 3*sizeof (float), (GLvoid*)spherePositionArray);
     glEnable (GL_NORMALIZE); // preserve les vecteurs normaux unitaires, quelle que soit la transformation courante
     
+    //2 sources of light
     glEnable (GL_LIGHTING);
     GLfloat light_position[4] = {10.0f, 10.0f, 10.0f, 1.0f};
     GLfloat color[4] = {1.0f, 1.0f, 0.9f, 1.0f};
@@ -284,6 +355,27 @@ void init () {
     glLightfv (GL_LIGHT1, GL_DIFFUSE, color2); // On lui donne légèrement orangée
     glLightfv (GL_LIGHT1, GL_SPECULAR, color2); // Une hérésie, mais OpenGL est conçu comme cela
     glEnable (GL_LIGHT1); // On active la source 0
+    
+    //Texture
+    glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+    
+    width = nb;
+    height = nb;
+    image = new unsigned char[3*width*height];
+    
+    genCheckerboard(width, height, image);
+    glTexCoordPointer (2, GL_FLOAT, 2*sizeof (float), (GLvoid*)sphereTexcoordArray);
+    
+    glEnable (GL_TEXTURE_2D); // Activation de la texturation 2D
+    glGenTextures (1, &texture); // Génération d’une texture OpenGL
+    glBindTexture (GL_TEXTURE_2D, texture); // Activation de la texture comme texture courante
+    // les 4 lignes suivantes paramètre le filtrage de texture ainsi que sa répétition au-delà du carré unitaire
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // La commande suivante remplit la texture (sur GPU) avec les données de l’image
+    glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 }
 
 void setupCamera () {
@@ -371,12 +463,15 @@ void glSphere(float x, float y, float z, float r){
 
 void glSphereWithMat (float x, float y, float z, float r, float difR, float difG, float difB,
                       float specR, float specG, float specB,
-                      float shininess){
+                      float shininess, bool hasTexture){
     GLfloat material_color[4] = {difR, difG, difB, 1.0f};
     GLfloat material_specular[4] = {specR, specG, specB,1.0};
     glMaterialfv (GL_FRONT_AND_BACK, GL_SPECULAR, material_specular);
     glMaterialfv (GL_FRONT_AND_BACK, GL_DIFFUSE, material_color);
     glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, shininess);
+    if(hasTexture == true){
+        glBindTexture (GL_TEXTURE_2D, texture);
+    }
     glSphere(x, y, z, r);
 }
 
@@ -393,15 +488,15 @@ void display () {
     glSphereWithMat(0, 0, 0, 1,
              1.0, 0.3,0.6,
              0.8,1.0,0.5,
-             80);
+             80, true);
     glSphereWithMat(-2, 0, 0, 1,
              0.9, 1,0.6,
              0.1,0.4,0.7,
-             80);
+             80, true);
     glSphereWithMat(2, 0, 0, 1,
                     0.4, 0.3,0.6,
                     0.8,1.0,0.5,
-                    128);
+                    128, true);
     //glSphere(-2, 0, 0, 1);
     //glSphere(2, 0, 0, 1);
     //glSphere(-1, sqrt(3), 0, 1);
@@ -478,12 +573,12 @@ void specialKey(GLint key, GLint x, GLint y){
     switch (key) {
             break;
    	    case GLUT_KEY_UP:
-            camDist2Target -= 1;
+            camDist2Target -= 0.5;
             //camTheta += 0.1;
             //camTargetY += 0.2;
             break;
         case GLUT_KEY_DOWN:
-            camDist2Target += 1;
+            camDist2Target += 0.5;
             //camTheta -= 0.1;
             //camTargetY -= 0.2;
             break;
